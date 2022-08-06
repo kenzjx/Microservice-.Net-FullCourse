@@ -33,4 +33,5 @@ spec:
     app: commandservice
   ports:
   - port: 80
+    name: commandservice
     targetPort: 80

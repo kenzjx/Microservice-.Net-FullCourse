@@ -33,4 +33,5 @@ spec:
     app: platformservice
   ports:
   - port: 80
+    name: platformservice
     targetPort: 80
