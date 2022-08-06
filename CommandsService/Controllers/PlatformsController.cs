@@ -8,11 +8,11 @@ namespace CommandsService.Controllers
     public class PlatformsController : ControllerBase
     {
 
-        [HttpGet]
-        public async Task<IActionResult> Get()
+        [HttpPost]
+        public async Task<IActionResult> TestInboundConnect()
         {
-
-            return Ok();
+            Console.WriteLine("Write Connect");
+            return Ok("This is CommandsService");
         }
     }
 }

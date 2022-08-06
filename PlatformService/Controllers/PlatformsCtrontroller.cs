@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PlatformService.Data;
 using PlatformService.Dtos;
 using PlatformService.Models;
+using PlatformService.SyncDataService.Http;
 
 namespace PlatformService.Controllers;
 
@@ -13,10 +14,13 @@ public class PlatformsController : ControllerBase
     private readonly IPlatformRepo _repository;
     private readonly IMapper _mapper;
 
-    public PlatformsController(IPlatformRepo repository, IMapper mapper)
+    private readonly ICommandDataClient _commandDataClient;
+
+    public PlatformsController(IPlatformRepo repository, IMapper mapper, ICommandDataClient commandDataClient)
     {
         _repository = repository;
         _mapper = mapper;
+        _commandDataClient = commandDataClient;
     }
 
     [HttpGet]
@@ -42,7 +46,7 @@ public class PlatformsController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<PlatformCreateDto> GetPlatformById([FromBody] PlatformCreateDto plat)
+    public async Task<ActionResult<PlatformCreateDto>> GetPlatformById([FromBody] PlatformCreateDto plat)
     {
         var platformModel = _mapper.Map<Platform>(plat);
 
@@ -51,6 +55,17 @@ public class PlatformsController : ControllerBase
 
         var platformReadDto = _mapper.Map<PlatformReadDto>(platformModel);
         var Id = platformReadDto.Id;
+
+        try
+        {
+            await _commandDataClient.SendPlatformToCommand(platformReadDto);
+        }
+        catch (System.Exception ex)
+        {
+
+            Console.WriteLine($"--> Cloud not send synchronousl: {ex.Message}");
+        }
+
         return CreatedAtRoute(nameof(GetPlatformById), new { Id = platformReadDto.Id }, platformReadDto);
     }
 }
