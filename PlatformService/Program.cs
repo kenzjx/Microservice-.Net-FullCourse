@@ -8,10 +8,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddDbContext<AppDbContext>(opts =>
+
+if(builder.Build().Environment.IsProduction())
+{
+    Console.WriteLine("-> Using Sql server");
+    builder.Services.AddDbContext<AppDbContext>(options =>{
+        options.UseSqlServer(builder.Configuration.GetConnectionString("platformsConn"));
+    });
+
+}else
+{
+    Console.WriteLine("--> Using InMem Db");
+    builder.Services.AddDbContext<AppDbContext>(opts =>
 {
     opts.UseInMemoryDatabase("InMem");
 });
+}
+
 
 builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
 
@@ -59,6 +72,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-PrepDb.PrepPopulation(app);
+PrepDb.PrepPopulation(app, app.Environment.IsProduction());
 
 app.Run();
